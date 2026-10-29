@@ -77,7 +77,14 @@ with st.sidebar:
     st.write("---")
     current_page = st.radio(
         "Select Portal Section Node:",
-        ["🔑 1. Authorization Gateways", "📺 2. Product Video Presentation", "ℹ️ 3. Product Information Speclist", "🛒 4. Commercial Purchase Room"]
+        [
+            "🔑 1. Authorization Gateways",
+            "📺 2. Product Video Presentation",
+            "ℹ️ 3. Product Information Speclist",
+            "🌳 4. Interactive MLM Genealogy Tree",
+            "🛒 5. Commercial Purchase Room",
+            "📦 6. Shipment Status & Logistics Details"
+        ]
     )
     st.write("---")
     st.success("🟢 Verified Cloud Mode Active")
@@ -91,10 +98,7 @@ if current_page == "🔑 1. Authorization Gateways":
     with app_view:
         if st.session_state.logged_in:
             st.header(f"Welcome back to your node dashboard, {st.session_state.user_name}!")
-            
-            # --- HIGHLIGHTED REFINEMENT: Displaying the unique User UID at the Gateway layer ---
             st.info(f"🔑 **Your Unique Firebase Account Identifier (UID):** `{st.session_state.user_uid}`")
-            
             try:
                 user_doc = db.collection("users").document(st.session_state.user_email).get()
                 if user_doc.exists:
@@ -114,7 +118,6 @@ if current_page == "🔑 1. Authorization Gateways":
                             st.error("Identity error: Please input complete data combinations inside targets.")
                         else:
                             try:
-                                # Fetch primary cloud user credentials object from Firebase Auth to harvest global UID
                                 auth_user = auth.get_user_by_email(login_email)
                                 user_doc = db.collection("users").document(login_email).get()
                                 if user_doc.exists:
@@ -122,12 +125,12 @@ if current_page == "🔑 1. Authorization Gateways":
                                     st.session_state.logged_in = True
                                     st.session_state.user_email = login_email
                                     st.session_state.user_name = data.get("name", "User")
-                                    st.session_state.user_uid = auth_user.uid  # Assign UID to global workspace tracking state
+                                    st.session_state.user_uid = auth_user.uid
                                     st.rerun()
                                 else:
                                     st.error("Verification mismatch error: Profile mapping data matrix index rows missing.")
                             except Exception as e:
-                                st.error(f"Authentication exception: Invalid configuration keys or missing profile identifier logs. Info: {e}")
+                                st.error(f"Authentication exception: Invalid configuration keys or missing logs. Info: {e}")
 # ======================================================================================================================
 # LINE MODULE 261 - 390: SIGN-UP SYSTEM INPUT ELEMENTS, CRITICAL LOGICAL FIELD CHECKS, AND DATA TRANSACTIONS
 # ======================================================================================================================
@@ -164,10 +167,9 @@ if current_page == "🔑 1. Authorization Gateways":
                             st.error("Security criteria exception: Password validation length parameters fail minimal 6-character thresholds.")
                         else:
                             try:
-                                # Create cloud auth account row element to capture new UID matrix values
                                 created_user = auth.create_user(email=email, password=password, display_name=name)
                                 payload = {
-                                    "uid": created_user.uid,  # Embed unique secure UID value configuration parameters inside dataset rows
+                                    "uid": created_user.uid,
                                     "name": name, "email": email, "age": int(age), "gender": gender,
                                     "mobile": mobile, "address": address, "bank_name": chosen_bank,
                                     "bank_account": bank_account, "upline": upline.strip() if upline else None
@@ -177,7 +179,7 @@ if current_page == "🔑 1. Authorization Gateways":
                             except Exception as e:
                                 st.error(f"Cloud operational pipeline failed: {e}")
 # ======================================================================================================================
-# LINE MODULE 391+: CENTRAL ADMINISTRATIVE MATRICES, VIDEO CONTROLS AND MULTI-PAGE WORKSPACE VIEWPORTS
+# LINE MODULE 391 - 520: ADMIN DATABASE AGGREGATOR ENGINE AND FUTURE MLM GENEALOGY INTERACTIVE MAP DESIGN
 # ======================================================================================================================
     with admin_view:
         st.subheader("📋 Centralized System Database Matrix View")
@@ -214,10 +216,62 @@ elif current_page == "ℹ️ 3. Product Information Speclist":
     st.write("---")
     st.image("https://unsplash.com", caption="Hardware Node Module")
 
-elif current_page == "🛒 4. Commercial Purchase Room":
+# ----------------------------------------------------------------------------------------------------------------------
+# NEW CORNERSTONE: LINK 4 - INTERACTIVE GENEALOGY NETWORK FORWARD-LOOKING ARCHITECTURE PLACEHOLDER
+# ----------------------------------------------------------------------------------------------------------------------
+elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
+    st.title("🌳 MLM Network Genealogy & Binary Matrix Visualizer")
+    st.write("---")
+    if not st.session_state.logged_in:
+        st.warning("🔒 Access Restricted: Please authenticate your signature token on Link 1 to read your network branch positions.")
+    else:
+        st.success(f"Network context established for user node: **{st.session_state.user_email}**")
+        st.info("🛠️ FUTURE PRODUCTION LOGIC STAGE: This module will read upline and downline keys from Firestore to generate dynamic network chart visualizers.")
+        
+        # Structural design layout preview
+        st.subheader("Your Network Core Connections Preview")
+        col_t1, col_t2 = st.columns(2)
+        with col_t1:
+            st.metric(label="Assigned Direct Sponsor Node (Upline ID)", value="Awaiting Data Match")
+        with col_t2:
+            st.metric(label="Total Downline Connections Count", value="0 Active Members")
+# ======================================================================================================================
+# LINE MODULE 521+: COMMERCE GATEWAY GENERATION CHANNELS AND COMPREHENSIVE LOGISTICS SHIPMENT MONITOR PORTAL
+# ======================================================================================================================
+elif current_page == "🛒 5. Commercial Purchase Room":
     st.title("🛒 Commercial Checkout Gateway Engine")
     st.write("---")
     if not st.session_state.logged_in:
         st.warning("🔒 Access Blocked: You must authenticate your login status token in link 1 before accessing secure commerce purchases.")
     else:
         st.success(f"Verified Checkout Node Active for session token UID: **{st.session_state.user_uid}**")
+        with st.form("checkout_order_submission_form"):
+            selected_item = st.selectbox("Choose Product Variant Configuration:", ["Standard Hub Unit - MYR 250", "Premium Network Matrix Package - MYR 600"])
+            order_quantity = st.number_input("Unit Allocation Quantity:", min_value=1, max_value=50, value=1)
+            if st.form_submit_button("Confirm Order Execution and Bill Linked Bank Account"):
+                st.balloons()
+                st.success("🛒 Transaction Pipeline Triggered! Orders captured and registered to your cloud profile.")
+
+# ----------------------------------------------------------------------------------------------------------------------
+# NEW CORNERSTONE: LINK 6 - SHIPMENT AND CARRIER LOGISTICS DISPATCH SYSTEM TRACKER PLACEHOLDER
+# ----------------------------------------------------------------------------------------------------------------------
+elif current_page == "📦 6. Shipment Status & Logistics Details":
+    st.title("📦 Logistics Pipeline & Real-Time Shipment Status Tracker")
+    st.write("---")
+    if not st.session_state.logged_in:
+        st.warning("🔒 Access Blocked: Log in to link 1 to track shipping parameters bound to your account.")
+    else:
+        st.success(f"Active tracking container bound to profile target email: **{st.session_state.user_email}**")
+        st.write("Review shipping assignments, delivery pipelines, and warehouse consignment status details.")
+        
+        # Display structural tracking placeholder logs
+        st.info("🛠️ FUTURE PRODUCTION LOGIC STAGE: This module will read from your 'orders' or 'shipments' collections table in Firestore.")
+        
+        # Mock interactive layout design to verify the visualization styles look right
+        st.subheader("Active Shipments Tracking Status Grid")
+        st.markdown("""
+        * **Estimated Delivery Window:** 3-5 Working Days (via local carrier partners like PosLaju or J&T Express)
+        * **Consignment Status Node:** `IN_TRANSIT` (Warehouse Sorting Center Hub Base)
+        * **Current Handling Terminal:** Kuala Lumpur Logistics Depot Terminal Node
+        """)
+        st.progress(40, text="Shipping Progress Indicator: Package dispatched from primary fulfillment fulfillment node center")
