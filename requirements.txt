@@ -1,3 +1,4 @@
+streamlit>=1.30.0
 Django==5.1.2
 psycopg2-binary==2.9.9
 dj-database-url==2.1.0
