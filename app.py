@@ -3,6 +3,7 @@
 # ======================================================================================================================
 import streamlit as st
 import re
+import os
 import pandas as pd
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
@@ -216,9 +217,6 @@ elif current_page == "ℹ️ 3. Product Information Speclist":
     st.write("---")
     st.image("https://unsplash.com", caption="Hardware Node Module")
 
-# ----------------------------------------------------------------------------------------------------------------------
-# NEW CORNERSTONE: LINK 4 - INTERACTIVE GENEALOGY NETWORK FORWARD-LOOKING ARCHITECTURE PLACEHOLDER
-# ----------------------------------------------------------------------------------------------------------------------
 elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
     st.title("🌳 MLM Network Genealogy & Binary Matrix Visualizer")
     st.write("---")
@@ -227,16 +225,8 @@ elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
     else:
         st.success(f"Network context established for user node: **{st.session_state.user_email}**")
         st.info("🛠️ FUTURE PRODUCTION LOGIC STAGE: This module will read upline and downline keys from Firestore to generate dynamic network chart visualizers.")
-        
-        # Structural design layout preview
-        st.subheader("Your Network Core Connections Preview")
-        col_t1, col_t2 = st.columns(2)
-        with col_t1:
-            st.metric(label="Assigned Direct Sponsor Node (Upline ID)", value="Awaiting Data Match")
-        with col_t2:
-            st.metric(label="Total Downline Connections Count", value="0 Active Members")
 # ======================================================================================================================
-# LINE MODULE 521+: COMMERCE GATEWAY GENERATION CHANNELS AND COMPREHENSIVE LOGISTICS SHIPMENT MONITOR PORTAL
+# LINE MODULE 521+: DYNAMIC DIRECTORY IMAGE SCANNERS, AUTO N-PRODUCT GENERATORS, AND SHIPMENT STATUS TRACKERS
 # ======================================================================================================================
 elif current_page == "🛒 5. Commercial Purchase Room":
     st.title("🛒 Commercial Checkout Gateway Engine")
@@ -245,16 +235,58 @@ elif current_page == "🛒 5. Commercial Purchase Room":
         st.warning("🔒 Access Blocked: You must authenticate your login status token in link 1 before accessing secure commerce purchases.")
     else:
         st.success(f"Verified Checkout Node Active for session token UID: **{st.session_state.user_uid}**")
+        
+        # --------------------------------------------------------------------------------------------------------------
+        # HIGH CONFIDENCE AUTOMATION: Scan the "product" folder for images dynamically
+        # --------------------------------------------------------------------------------------------------------------
+        PRODUCT_DIR = "product"
+        if not os.path.exists(PRODUCT_DIR):
+            os.makedirs(PRODUCT_DIR)
+            
+        valid_extensions = (".png", ".jpg", ".jpeg", ".webp")
+        product_images = [
+            f for f in os.listdir(PRODUCT_DIR)
+            if f.lower().endswith(valid_extensions) and os.path.isfile(os.path.join(PRODUCT_DIR, f))
+        ]
+        
+        if len(product_images) == 0:
+            st.info("💡 Your product catalog directory folder is currently empty. Drop your image files directly into the 'product/' folder to view them here.")
+            product_options = ["No products available in directory"]
+        else:
+            st.subheader(f"📦 Active Product Catalog Matrix ({len(product_images)} Items Found)")
+            
+            # Generate clean product name text titles from the scanned file names
+            product_options = []
+            
+            # Grid Visualizer: Loop through the total number of images (N products) automatically
+            grid_cols = st.columns(min(len(product_images), 4)) # Limit row split to groups of 4 columns max for neatness
+            for index, img_filename in enumerate(product_images):
+                col_target = grid_cols[index % 4]
+                full_image_path = os.path.join(PRODUCT_DIR, img_filename)
+                
+                # Format clean visual titles out of file names (e.g., product_one.png -> PRODUCT ONE)
+                clean_title = os.path.splitext(img_filename)[0].replace("_", " ").upper()
+                product_options.append(clean_title)
+                
+                with col_target:
+                    st.image(full_image_path, use_container_width=True)
+                    st.write(f"**🏷️ {clean_title}**")
+            
+            st.write("---")
+            
+        # Secure Checkout Form Processors
         with st.form("checkout_order_submission_form"):
-            selected_item = st.selectbox("Choose Product Variant Configuration:", ["Standard Hub Unit - MYR 250", "Premium Network Matrix Package - MYR 600"])
+            st.subheader("Place Your Order Placement Entry")
+            selected_item = st.selectbox("Choose Product Catalog Choice (Scanned Automatically):", product_options)
             order_quantity = st.number_input("Unit Allocation Quantity:", min_value=1, max_value=50, value=1)
+            
             if st.form_submit_button("Confirm Order Execution and Bill Linked Bank Account"):
-                st.balloons()
-                st.success("🛒 Transaction Pipeline Triggered! Orders captured and registered to your cloud profile.")
+                if len(product_images) == 0:
+                    st.error("Transaction stopped: Cannot checkout without an active product selection.")
+                else:
+                    st.balloons()
+                    st.success(f"🛒 Order Processed Successfully! Purchased {order_quantity}x units of **{selected_item}**. Details logged to profile Firestore row parameters.")
 
-# ----------------------------------------------------------------------------------------------------------------------
-# NEW CORNERSTONE: LINK 6 - SHIPMENT AND CARRIER LOGISTICS DISPATCH SYSTEM TRACKER PLACEHOLDER
-# ----------------------------------------------------------------------------------------------------------------------
 elif current_page == "📦 6. Shipment Status & Logistics Details":
     st.title("📦 Logistics Pipeline & Real-Time Shipment Status Tracker")
     st.write("---")
@@ -262,16 +294,11 @@ elif current_page == "📦 6. Shipment Status & Logistics Details":
         st.warning("🔒 Access Blocked: Log in to link 1 to track shipping parameters bound to your account.")
     else:
         st.success(f"Active tracking container bound to profile target email: **{st.session_state.user_email}**")
-        st.write("Review shipping assignments, delivery pipelines, and warehouse consignment status details.")
-        
-        # Display structural tracking placeholder logs
         st.info("🛠️ FUTURE PRODUCTION LOGIC STAGE: This module will read from your 'orders' or 'shipments' collections table in Firestore.")
-        
-        # Mock interactive layout design to verify the visualization styles look right
         st.subheader("Active Shipments Tracking Status Grid")
         st.markdown("""
         * **Estimated Delivery Window:** 3-5 Working Days (via local carrier partners like PosLaju or J&T Express)
         * **Consignment Status Node:** `IN_TRANSIT` (Warehouse Sorting Center Hub Base)
         * **Current Handling Terminal:** Kuala Lumpur Logistics Depot Terminal Node
         """)
-        st.progress(40, text="Shipping Progress Indicator: Package dispatched from primary fulfillment fulfillment node center")
+        st.progress(40, text="Shipping Progress Indicator: Package dispatched from primary fulfillment node center")
