@@ -46,7 +46,7 @@ MALAYSIAN_BANKS = [
     "Maybank (Malayan Banking Berhad)", "Maybank Islamic Berhad",
     "CIMB Bank Berhad", "CIMB Islamic Bank Berhad",
     "Public Bank Berhad", "Public Islamic Bank Berhad",
-    "RHB Bank Berhad", "RHB Islamic Bank Berhad",
+    "RHB Bank Berhad", "RHB Islamic Berhad",
     "Hong Leong Bank Berhad", "Hong Leong Islamic Bank Berhad",
     "AmBank (M) Berhad", "AmBank Islamic Berhad",
     "Affin Bank Berhad", "Affin Islamic Bank Berhad",
@@ -72,6 +72,80 @@ def process_user_logout():
     st.session_state.user_name = ""
     st.session_state.user_uid = ""
     st.rerun()
+
+# 📦 PASTED TRIGGER: TWO-LEVEL TRANSACTION LEDGER WRITER
+def process_dynamic_b2b_payout(buyer_email, total_bottles):
+    """Executes dynamic 2-level commission distributions safely, logging steps to firestore."""
+    if total_bottles < 50:
+        return
+        
+    try:
+        buyer_ref = db.collection("users").document(buyer_email.strip().lower()).get()
+        if not buyer_ref.exists:
+            return
+            
+        buyer_data = buyer_ref.to_dict()
+        l1_email = buyer_data.get("upline", "").strip().lower()
+        
+        if l1_email and l1_email != buyer_email.strip().lower():
+            l1_ref = db.collection("users").document(l1_email).get()
+            if l1_ref.exists:
+                # Level 1 Payout calculation (RM5 per bottle)
+                l1_bonus = total_bottles * 5.0
+                db.collection("users").document(l1_email).update({"wallet_balance": firestore.Increment(l1_bonus)})
+                
+                # Write Step 2 Ledger Record for Level 1
+                db.collection("transactions").add({
+                    "recipient_email": l1_email,
+                    "buyer_email": buyer_email,
+                    "level": 1,
+                    "amount": l1_bonus,
+                    "description": f"Level 1 B2B Recruit Bonus from {buyer_email} ({total_bottles} bottles)"
+                })
+                
+                # Trace network architecture to Level 2
+                l1_data = l1_ref.to_dict()
+                l2_email = l1_data.get("upline", "").strip().lower()
+                
+                if l2_email and l2_email not in [buyer_email.strip().lower(), l1_email]:
+                    l2_ref = db.collection("users").document(l2_email).get()
+                    if l2_ref.exists:
+                        # Level 2 Payout calculation (RM3 per bottle)
+                        l2_bonus = total_bottles * 3.0
+                        db.collection("users").document(l2_email).update({"wallet_balance": firestore.Increment(l2_bonus)})
+                        
+                        # Write Step 2 Ledger Record for Level 2
+                        db.collection("transactions").add({
+                            "recipient_email": l2_email,
+                            "buyer_email": buyer_email,
+                            "level": 2,
+                            "amount": l2_bonus,
+                            "description": f"Level 2 B2B Grandfather Bonus from {buyer_email} via {l1_email} ({total_bottles} bottles)"
+                        })
+    except Exception as e:
+        st.error(f"Commission distribution failure: {e}")
+
+def update_upline_post_registration(user_email, new_upline_email):
+    """Updates the upline node in Firestore dynamically for post-registration modifications."""
+    cleaned_upline = new_upline_email.strip().lower()
+    cleaned_user = user_email.strip().lower()
+    if not cleaned_upline or not is_valid_email(cleaned_upline):
+        st.error("Validation error: Please input a structurally valid email reference string.")
+        return False
+    if cleaned_user == cleaned_upline:
+        st.error("Hierarchy error: You cannot bind your own user node as an upline identifier.")
+        return False
+    try:
+        upline_ref = db.collection("users").document(cleaned_upline).get()
+        if not upline_ref.exists:
+            st.error("Registry mismatch: The requested upline email target node does not exist in our cloud database.")
+            return False
+        db.collection("users").document(cleaned_user).update({"upline": cleaned_upline})
+        st.success("🎉 Network position synchronized successfully! Upline structure updated.")
+        return True
+    except Exception as e:
+        st.error(f"Cloud update pipeline error: {e}")
+        return False
 
 with st.sidebar:
     st.title("🌐 Hub Navigation")
@@ -103,9 +177,47 @@ if current_page == "🔑 1. Authorization Gateways":
             try:
                 user_doc = db.collection("users").document(st.session_state.user_email).get()
                 if user_doc.exists:
-                    st.json(user_doc.to_dict())
+                    user_data = user_doc.to_dict()
+                    
+                    # 📊 FINANCIAL OVERVIEW METRIC TILES
+                    st.write("---")
+                    st.subheader("💰 Financial Ledger & Earnings Matrix")
+                    current_balance = user_data.get("wallet_balance", 0.0)
+                    st.metric(label="Available Earning Wallet Balance", value=f"RM {current_balance:,.2f}")
+                    
+                    # 📋 DYNAMIC TRANSACTION HISTORY LEDGER
+                    st.write("### 📜 Level 1 & Level 2 Commission Records")
+                    tx_list = []
+                    tx_ref = db.collection("transactions").where("recipient_email", "==", st.session_state.user_email).stream()
+                    for doc in tx_ref:
+                        tx_list.append(doc.to_dict())
+                        
+                    if tx_list:
+                        tx_df = pd.DataFrame(tx_list)
+                        # Clean up formatting for readability
+                        if "amount" in tx_df.columns:
+                            tx_df["amount"] = tx_df["amount"].apply(lambda x: f"RM {x:,.2f}")
+                        st.dataframe(tx_df[["level", "amount", "buyer_email", "description"]], use_container_width=True, hide_index=True)
+                    else:
+                        st.info("ℹ️ No downline commission distributions have been credited to this node account yet.")
+                    
+                    # 🛠️ POST-REGISTRATION UPLINE MANAGEMENT UTILITY
+                    st.write("---")
+                    st.subheader("Network Hierarchy Settings")
+                    current_upline = user_data.get("upline")
+                    if current_upline and current_upline.strip():
+                        st.success(f"🔒 **Network Position Locked:** Your account node is permanently assigned to Upline: `{current_upline}`")
+                    else:
+                        st.warning("⚠️ **Unassigned Node:** You currently have no parent upline recruiter assigned.")
+                        with st.form("post_reg_upline_update_form"):
+                            new_upline_input = st.text_input("Enter Parent Recruiter Email Address to Link Node:").strip()
+                            if st.form_submit_button("Link Network Position Permanently"):
+                                if update_upline_post_registration(st.session_state.user_email, new_upline_input):
+                                    st.rerun()
             except Exception as e:
                 st.error(f"Error executing profile extraction process logic: {e}")
+            
+            st.write("---")
             st.button("Log Out of Session Room", on_click=process_user_logout, type="primary")
         else:
             tab1, tab2 = st.tabs(["🔑 Gateway User Login System", "📝 New Account Application Form"])
@@ -132,6 +244,7 @@ if current_page == "🔑 1. Authorization Gateways":
                                     st.error("Verification mismatch error: Profile data matrix entries missing.")
                             except Exception as e:
                                 st.error(f"Authentication exception: Invalid credentials or missing account records: {e}")
+
 # ======================================================================================================================
 # LINE MODULE 261 - 390: PIPELINE ENROLLMENT SYSTEMS, INPUT DATA FIELD MAPPING, AND FIRESTORE CLOUD WRITERS
 # ======================================================================================================================
@@ -174,7 +287,8 @@ if current_page == "🔑 1. Authorization Gateways":
                                     "name": name, "email": email, "age": int(age), "gender": gender,
                                     "mobile": mobile, "address": address, "bank_name": chosen_bank,
                                     "bank_account": bank_account, "upline": upline.strip() if upline else None,
-                                    "signup_reward_claimed": False
+                                    "signup_reward_claimed": False,
+                                    "is_admin": False  # 🔐 Adds default non-admin flag to new profiles
                                 }
                                 db.collection("users").document(email).set(payload)
                                 st.success("🎉 Account Written Live to Cloud! Data streamed cleanly to your Firestore collections table.")
@@ -184,29 +298,80 @@ if current_page == "🔑 1. Authorization Gateways":
 # LINE MODULE 391 - 520: ADMINISTRATIVE SYSTEM SHEETS, PRESENTATION DOMAINS, AND MLM GENEALOGY WORKSPACES
 # ======================================================================================================================
     with admin_view:
-        st.subheader("📋 Centralized System Database Matrix View")
-        st.write("This panel tracks and structures cloud system user directories directly into tabulated dashboard spreadsheet grids.")
-        records_list = []
-        try:
-            for doc in db.collection("users").stream():
-                dict_data = doc.to_dict()
-                records_list.append(dict_data)
-        except Exception as e:
-            st.error(f"Data stream collection pipeline execution exception dropped: {e}")
-        if records_list:
-            df = pd.DataFrame(records_list)
-            desired_order = ["uid", "name", "email", "age", "gender", "mobile", "bank_name", "bank_account", "upline", "address"]
-            existing_order = [col for col in desired_order if col in df.columns] + [col for col in df.columns if col not in desired_order]
-            df = df[existing_order]
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            st.download_button(
-                label="📥 Export Dynamic System Data Table Matrix to Local CSV File Spreadsheet",
-                data=df.to_csv(index=False).encode('utf-8'),
-                file_name="system_registered_directory.csv",
-                mime="text/csv"
-            )
+        # 🔒 ADMIN PRIVILEGE VALIDATION LAYER
+        is_current_user_admin = False
+        if st.session_state.logged_in:
+            try:
+                current_user_doc = db.collection("users").document(st.session_state.user_email).get()
+                if current_user_doc.exists:
+                    is_current_user_admin = current_user_doc.to_dict().get("is_admin", False)
+            except Exception:
+                pass
+
+        if not is_current_user_admin:
+            st.error("🔒 Security Clearance Denied: This administrative panel requires an authorized admin profile token signature.")
         else:
-            st.info("System registry status empty: No profiles initialized or compiled inside active directory node maps yet.")
+            st.subheader("📋 Centralized System Database Matrix View")
+            st.write("This panel tracks and structures cloud system user directories directly into tabulated dashboard spreadsheet grids.")
+            records_list = []
+            try:
+                for doc in db.collection("users").stream():
+                    dict_data = doc.to_dict()
+                    records_list.append(dict_data)
+            except Exception as e:
+                st.error(f"Data stream collection pipeline execution exception dropped: {e}")
+            
+            if records_list:
+                df = pd.DataFrame(records_list)
+                desired_order = ["uid", "name", "email", "age", "gender", "mobile", "bank_name", "bank_account", "upline", "address"]
+                existing_order = [col for col in desired_order if col in df.columns] + [col for col in df.columns if col not in desired_order]
+                df = df[existing_order]
+                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.download_button(
+                    label="📥 Export Dynamic System Data Table Matrix to Local CSV File Spreadsheet",
+                    data=df.to_csv(index=False).encode('utf-8'),
+                    file_name="system_registered_directory.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.info("System registry status empty: No profiles initialized or compiled inside active directory node maps yet.")
+
+            # 🛠️ EXECUTIVE HIERARCHY OVERWRITE PANEL
+            st.write("---")
+            st.subheader("🔧 Executive Network Correction Panel")
+            st.caption("Authorized administrators can use this tool to correct misconfigured or mistyped upline trees.")
+            
+            with st.form("admin_upline_correction_form"):
+                target_user_email = st.text_input("Target User Email to Modify (Buyer):").strip().lower()
+                corrected_upline_email = st.text_input("New Corrected Upline Recruiter Email (Leave blank to remove/reset):").strip().lower()
+                
+                if st.form_submit_button("Force Overwrite Network Node Structure", type="primary"):
+                    if not target_user_email:
+                        st.error("Missing fields error: Please specify a target user account node to modify.")
+                    elif target_user_email == corrected_upline_email:
+                        st.error("Hierarchy error: You cannot bind a user node as its own upline recruiter.")
+                    else:
+                        try:
+                            # 1. Verify target user exists
+                            user_check = db.collection("users").document(target_user_email).get()
+                            if not user_check.exists:
+                                st.error(f"Registry mismatch: Target user '{target_user_email}' does not exist in the database.")
+                            else:
+                                # 2. Verify new upline exists if it's not a complete deletion/reset
+                                if corrected_upline_email:
+                                    upline_check = db.collection("users").document(corrected_upline_email).get()
+                                    if not upline_check.exists:
+                                        st.error(f"Registry mismatch: The requested upline email '{corrected_upline_email}' does not exist.")
+                                        st.stop()
+                                
+                                # 3. Commit administrative override bypassing normal user blocks
+                                db.collection("users").document(target_user_email).update({
+                                    "upline": corrected_upline_email if corrected_upline_email else None
+                                })
+                                st.success(f"🎉 Admin Overwrite Successful! Network position for '{target_user_email}' has been updated.")
+                                st.rerun()
+                        except Exception as ex:
+                            st.error(f"Administrative database update failed: {ex}")
 
 elif current_page == "📺 2. Product Video Presentation":
     st.title("📺 Media Presentation Room")
