@@ -12,8 +12,13 @@ import streamlit.components.v1 as components
 # This pulls the updated strings from your animations.py file
 from animations import BLOOD_FLOW_HTML, REDUCTION_HTML, HYDRATION_HTML
 
-# --- PLACE IMMEDIATELY AFTER IMPORTS ---
-st.set_page_config(page_title="Product Info Portal", layout="wide")
+
+st.set_page_config(
+    page_title="Firebase Security Auth & Commerce Dashboard",
+    page_icon="🔐",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -89,7 +94,6 @@ with st.sidebar:
     )
     st.write("---")
     st.success("🟢 Verified Cloud Mode Active")
-
 # ======================================================================================================================
 # LINE MODULE 131 - 260: ACCESS PORTALS, SECURE PROFILE EXTRACTION, AND USER RECOGNITION INTERFACES
 # ======================================================================================================================
@@ -217,25 +221,7 @@ elif current_page == "📺 2. Product Video Presentation":
 elif current_page == "ℹ️ 3. Product Information Speclist":
     st.title("ℹ️ Mega H Global Product Inventory Center")
     st.write("---")
-    st.subheader("🎬 Live Simulation Frameworks")
-    st.write("Click a panel to view the visual mechanical simulations.")
-
-    # --- ROW 1 ANIMATION ---
-    st.markdown("### 🔴 1. Zeta Potential Flow")
-    # Enforce a tight, 450px centered window frame that matches our chat window exactly
-    components.html(f'<div style="display:flex; justify-content:center;">{BLOOD_FLOW_HTML}</div>', height=205, scrolling=False)
-    st.write("---")
-
-    # --- ROW 2 ANIMATION ---
-    st.markdown("### ⚡ 2. Radical Reduction Engine")
-    components.html(f'<div style="display:flex; justify-content:center;">{REDUCTION_HTML}</div>', height=205, scrolling=False)
-    st.write("---")
-
-    # --- ROW 3 ANIMATION ---
-    st.markdown("### 💧 3. Microcluster Entry")
-    components.html(f'<div style="display:flex; justify-content:center;">{HYDRATION_HTML}</div>', height=205, scrolling=False)
-    st.write("---")
-
+    st.image("https://unsplash.com", caption="Hardware Node Module")
 
 elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
     st.title("🌳 MLM Network Genealogy & Binary Matrix Visualizer")
