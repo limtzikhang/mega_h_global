@@ -7,11 +7,6 @@ import os
 import pandas as pd
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
-import streamlit.components.v1 as components
-
-# This pulls the updated strings from your animations.py file
-from animations import BLOOD_FLOW_HTML, REDUCTION_HTML, HYDRATION_HTML
-
 
 st.set_page_config(
     page_title="Firebase Security Auth & Commerce Dashboard",
