@@ -218,22 +218,25 @@ elif current_page == "ℹ️ 3. Product Information Speclist":
     st.title("ℹ️ Mega H Global Product Inventory Center")
     st.write("---")
     st.subheader("🎬 Live Simulation Frameworks")
-    # Animation 1: Placed on the main page flow
-    with st.expander("🔴 1. Zeta Potential & Plasma/Hydration Metrics", expanded=True):
-        st.write("Adjust hydration or plasma parameters to witness real-time blood viscosity updates.")
-        components.html(BLOOD_FLOW_HTML, height=240, scrolling=False)
+    st.write("Click a panel to view the visual mechanical simulations.")
 
-    # Animation 2: Placed on the main page flow
-    with st.expander("⚡ 2. Radical Reduction Engine", expanded=True):
-        st.write("Select a specific toxic oxidizer target, choose execution frame speed bounds, and hit fire.")
-        components.html(REDUCTION_HTML, height=240, scrolling=False)
+    # --- ROW 1 ANIMATION ---
+    st.markdown("### 🔴 1. Zeta Potential Flow")
+    # Enforce a tight, 450px centered window frame that matches our chat window exactly
+    components.html(f'<div style="display:flex; justify-content:center;">{BLOOD_FLOW_HTML}</div>', height=205, scrolling=False)
+    st.write("---")
 
-    # Animation 3: Placed on the main page flow
-    with st.expander("💧 3. Microcluster Cellular Membrane Entry", expanded=False):
-        st.write("Witness cellular wall permeability thresholds when microclusters execute entry.")
-        components.html(HYDRATION_HTML, height=220, scrolling=False)
-    
-    
+    # --- ROW 2 ANIMATION ---
+    st.markdown("### ⚡ 2. Radical Reduction Engine")
+    components.html(f'<div style="display:flex; justify-content:center;">{REDUCTION_HTML}</div>', height=205, scrolling=False)
+    st.write("---")
+
+    # --- ROW 3 ANIMATION ---
+    st.markdown("### 💧 3. Microcluster Entry")
+    components.html(f'<div style="display:flex; justify-content:center;">{HYDRATION_HTML}</div>', height=205, scrolling=False)
+    st.write("---")
+
+
 elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
     st.title("🌳 MLM Network Genealogy & Binary Matrix Visualizer")
     st.write("---")
