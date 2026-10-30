@@ -267,7 +267,7 @@ if current_page == "🔑 1. Authorization Gateways":
                     address = st.text_area("Physical Home Billing Address Node Structure *")
                     chosen_bank = st.selectbox("Associated Malaysian Financial Payment Bank *", MALAYSIAN_BANKS)
                     bank_account = st.text_input("Financial Ledger Bank Account Number Identifier *")
-                    upline = st.text_input("Parent Network Upline Referral Affiliate Node Index Key (Optional)")
+                    upline = st.text_input("Upline Email (Optional)")
                     if st.form_submit_button("Finalize and Launch System Profile Registration"):
                         if not (name and email and password and confirm_password and mobile and address and bank_account):
                             st.error("Missing fields error: All primary inputs marked with (*) must contain valid information.")
@@ -383,6 +383,7 @@ elif current_page == "ℹ️ 3. Product Information Speclist":
     st.write("---")
     st.image("https://unsplash.com", caption="Hardware Node Module")
 
+# 🌳 4. Interactive MLM Genealogy Tree Branch Section Node
 elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
     st.title("🌳 MLM Network Genealogy & Binary Matrix Visualizer")
     st.write("---")
@@ -390,11 +391,14 @@ elif current_page == "🌳 4. Interactive MLM Genealogy Tree":
         st.warning("🔒 Access Restricted: Please authenticate your signature token on Link 1 to read your network branch positions.")
     else:
         st.success(f"Network context established for user node: **{st.session_state.user_email}**")
-        st.info("🛠️ FUTURE PRODUCTION LOGIC STAGE: This module will read upline and downline keys from Firestore to generate dynamic network chart visualizers.")
-        st.subheader("Your Network Core Connections Preview")
-        col_t1, col_t2 = st.columns(2)
-        col_t1.metric(label="Assigned Direct Sponsor Node (Upline ID)", value="Awaiting Data Match")
-        col_t2.metric(label="Total Downline Connections Count", value="0 Active Members")
+        
+        # --- NEW CODE INTEGRATION REPLACING OLD PLACEHOLDER ---
+        try:
+            import genealogy
+            genealogy.render_genealogy_tree(db, st.session_state.user_email)
+        except ImportError:
+            st.error("🚨 System Module Failure: 'genealogy.py' must be present inside your application workspace.")
+
 # ======================================================================================================================
 # LINE MODULE 521 - 650: DYNAMIC FOLDER IMAGE SCANNING, MULTI-TIER MLM RATES ENGINE, AND STATEFUL MAYBANK2U BANKING FORM
 # ======================================================================================================================
@@ -535,7 +539,8 @@ elif current_page == "📦 6. Shipment Status & Logistics Details":
         user_orders = []
         try:
             orders_ref = db.collection("orders").where("user_email", "==", st.session_state.user_email).stream()
-            for doc in orders_ref: user_orders.append(doc.to_dict())
+            for doc in orders_ref: 
+                user_orders.append(doc.to_dict())
         except Exception as e:
             st.error(f"Error loading system order data matrices from cloud: {e}")
 
@@ -543,7 +548,17 @@ elif current_page == "📦 6. Shipment Status & Logistics Details":
             st.info("ℹ️ No active checkout history logged under this profile yet. Go to Link 5 to run a Maybank test transaction purchase!")
         else:
             st.subheader(f"📊 Your Dispatch Queue Records ({len(user_orders)} Shipments In Progress)")
-            for order in user_orders:
+            
+            # Create a localized folder inside the runtime container context for file compiling
+            os.makedirs("temp", exist_ok=True)
+            
+            # Lazy import our new invoice module to ensure fast page loads
+            import invoice
+            
+            for idx, order in enumerate(user_orders):
+                tracking_id = order.get('tracking_id', f"TX-{idx}")
+                temp_pdf_path = f"temp/Invoice_{tracking_id}.pdf"
+                
                 with st.container(border=True):
                     col_s1, col_s2, col_s3 = st.columns(3)
                     col_s1.markdown(f"**📦 Consignment Product Item:** `{order.get('product')}`")
@@ -552,5 +567,23 @@ elif current_page == "📦 6. Shipment Status & Logistics Details":
                     col_s2.write(f"**🎫 Air Waybill Tracking Number:** `{order.get('tracking_id')}`")
                     col_s3.markdown(f"**💰 Ledger Transaction Cost:** `RM {order.get('amount_paid')}`")
                     col_s3.write(f"**📦 Total Delivery Vol:** `{order.get('delivery_bottles')}` bottles")
+                    
                     st.markdown(f"**🚨 Operational Status Tracker Label:** <span style='color:#1e88e5; font-weight:bold;'>{order.get('status')}</span>", unsafe_allow_html=True)
                     st.progress(45, text="Fulfillment State Indicator: Payment verified. Warehouse cargo packing sorting active.")
+                    
+                    # Generate the PDF file inside the temporary directory path
+                    invoice.generate_invoice_pdf(order, temp_pdf_path)
+                    
+                    # Read the compiled binary buffer safely for Streamlit frontend transport
+                    with open(temp_pdf_path, "rb") as pdf_file:
+                        pdf_bytes = pdf_file.read()
+                    
+                    # Clean UI download utility button matching that order row index signature
+                    st.download_button(
+                        label=f"📥 Download Official Invoice PDF ({tracking_id})",
+                        data=pdf_bytes,
+                        file_name=f"Invoice_{tracking_id}.pdf",
+                        mime="application/pdf",
+                        key=f"dl_btn_{tracking_id}_{idx}"
+                    )
+
