@@ -1,6 +1,48 @@
-# mlm_logic.py - Lines 1 to 130 (Two-Level B2B Commission Logic)
+# mlm_logic.py - Complete Order and Multi-Level Commission Logic
 import pandas as pd
 import streamlit as st
+
+def calculate_bottle_order(order_quantity, user_ctx):
+    """
+    Calculates the breakdown of pricing tiers, delivery metrics, and active rewards 
+    for bottle order distributions.
+    
+    Tiered Rates:
+    - 1 bottle = RM 248 each
+    - 2 to 49 bottles = RM 198 each
+    - 50 bottles (B2B Bulk Tier) = RM 148 each
+    """
+    # 1. Determine Tier Pricing & Classifications
+    if order_quantity >= 50:
+        price_per_bottle = 148.0
+        tier_classification = "B2B Bulk Package"
+    elif order_quantity >= 2:
+        price_per_bottle = 198.0
+        tier_classification = "Wholesale Tier"
+    else:
+        price_per_bottle = 248.0
+        tier_classification = "Retail Tier"
+        
+    subtotal = order_quantity * price_per_bottle
+    
+    # 2. Check and Apply First-Time Sign-up Rewards
+    is_signup_reward_applied = False
+    free_reward_bottles = 0
+    
+    if user_ctx and not user_ctx.get("signup_reward_claimed", True):
+        free_reward_bottles = 1
+        is_signup_reward_applied = True
+
+    total_delivery_bottles = order_quantity + free_reward_bottles
+    
+    return {
+        "price_per_bottle": price_per_bottle,
+        "subtotal": subtotal,
+        "free_reward_bottles": free_reward_bottles,
+        "tier_classification": tier_classification,
+        "total_delivery_bottles": total_delivery_bottles,
+        "is_signup_reward_applied": is_signup_reward_applied
+    }
 
 def get_user_by_id(user_id, users_df):
     """Helper function to fetch user data from the current state."""

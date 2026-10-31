@@ -514,6 +514,14 @@ elif current_page == "🛒 5. Commercial Purchase Room":
                                 db.collection("orders").add(order_payload)
                                 if p_order['applied_reward']:
                                     db.collection("users").document(st.session_state.user_email).update({"signup_reward_claimed": True})
+
+# ==================================== ADDED CODE ====================================
+                                process_dynamic_b2b_payout(
+                                    buyer_email=st.session_state.user_email, 
+                                    total_bottles=p_order['quantity']
+                                )
+# ====================================================================================
+
                                 st.success("💰 Maybank Transaction Authorized Successfully!")
                                 st.balloons()
                                 st.session_state.checkout_stage = "form"
